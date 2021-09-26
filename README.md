@@ -1,5 +1,7 @@
 # nginx_modsite
----
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ### Usage:
 
 #### To list all the sites

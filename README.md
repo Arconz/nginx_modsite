@@ -3,7 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ### Install
 
-    $ nano /usr/bin/nginx_modsite  
+    $ nano /usr/bin/nginx_modsite
+    
     $ chmod 700 /usr/bin/nginx_modsite
 
 ### Usage:

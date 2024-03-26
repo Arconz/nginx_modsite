@@ -13,3 +13,5 @@
 #### To disable site "test_website"
     $ sudo nginx_modsite -d test_website
   
+Original Post for more information
+https://serverfault.com/questions/424452/nginx-enable-site-command

@@ -1,13 +1,16 @@
 # nginx_modsite
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ### Install
 
-#### Create File
+#### Create File (recommended)
+
     $ nano /usr/bin/nginx_modsite
 
 #### Set Permisions
-    $ chmod 700 /usr/bin/nginx_modsite
+    $ chmod +x /usr/bin/nginx_modsite
+
 
 ### Usage:
 

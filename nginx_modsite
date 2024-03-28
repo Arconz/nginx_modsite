@@ -14,6 +14,7 @@
 ##
 
 # Copyright (C) 2010 Michael Lustfield <mtecknology@ubuntu.com>
+# Modified 2024 by Brian Anderson <b_lee_anderson@hotmail.com>
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,7 +45,51 @@ NGINX_CONF_FILE="$(awk -F= -v RS=' ' '/conf-path/ {print $2}' <<< $(nginx -V 2>&
 NGINX_CONF_DIR="${NGINX_CONF_FILE%/*}"
 NGINX_SITES_AVAILABLE="$NGINX_CONF_DIR/sites-available"
 NGINX_SITES_ENABLED="$NGINX_CONF_DIR/sites-enabled"
-SELECTED_SITE="$2"
+
+# Initialize variables to store options
+ENABLE_OPTION=""
+DISABLE_OPTION=""
+LIST_OPTION=""
+HELP_OPTION=""
+NO_PROMPT_OPTION=""
+SELECTED_SITE=""
+
+# Parse command-line arguments
+for arg in "$@"; do
+    case $arg in
+        -e|--enable)
+            ENABLE_OPTION="true"
+            ;;
+        -d|--disable)
+            DISABLE_OPTION="true"
+            ;;
+        -l|--list)
+            LIST_OPTION="true"
+            ;;
+        -h|--help)
+            HELP_OPTION="true"
+            ;;
+        -p|--no_prompt)
+            NO_PROMPT_OPTION="true"
+            ;;
+        -ep|-pe)
+            ENABLE_OPTION="true"
+            NO_PROMPT_OPTION="true"
+            ;;
+        -dp|-pd)
+            DISABLE_OPTION="true"
+            NO_PROMPT_OPTION="true"
+            ;;
+        -*)
+            echo "Unknown option: $arg"
+            HELP_OPTION="true"
+            ;;
+        *)
+            # Assume it's a website name
+            SELECTED_SITE="$arg"
+            ;;
+    esac
+done
 
 ##
 # Script Functions
@@ -127,8 +172,12 @@ ngx_sites() {
 }
 
 ngx_reload() {
-    read -p "Would you like to reload the Nginx configuration now? (Y/n) " reload
-    [[ "$reload" != "n" && "$reload" != "N" ]] && invoke-rc.d nginx reload
+    if [ "$NO_PROMPT_OPTION" = "true" ]; then
+        systemctl reload nginx
+    else
+        read -p "Would you like to reload the Nginx configuration now? (Y/n) " reload
+        [[ "$reload" != "n" && "$reload" != "N" ]] && systemctl reload nginx
+    fi
 }
 
 ngx_error() {
@@ -144,6 +193,7 @@ ngx_help() {
     echo -e "\t<-d|--disable> <site>\tDisable site"
     echo -e "\t<-l|--list>\t\tList sites"
     echo -e "\t<-h|--help>\t\tDisplay help"
+    echo -e "\t<-p|--no_prompt>\t\tReload the Nginx configuration automatically"
     echo -e "\n\tIf <site> is left out a selection of options will be presented."
     echo -e "\tIt is assumed you are using the default sites-enabled and"
     echo -e "\tsites-disabled located at $NGINX_CONF_DIR."
@@ -153,10 +203,19 @@ ngx_help() {
 # Core Piece
 ##
 
-case "$1" in
-    -e|--enable)    ngx_enable_site;;
-    -d|--disable)   ngx_disable_site;;
-    -l|--list)  ngx_list_site;;
-    -h|--help)  ngx_help;;
-    *)      ngx_error "No Options Selected" 1; ngx_help;;
-esac
+# Determine action based on options
+if [ "$HELP_OPTION" = "true" ]; then
+    ngx_help
+elif [ "$ENABLE_OPTION" = "true" ]; then
+    ngx_enable_site
+elif [ "$DISABLE_OPTION" = "true" ]; then
+    ngx_disable_site
+elif [ "$LIST_OPTION" = "true" ]; then
+    ngx_list_site
+elif [ "$NO_PROMPT_OPTION" = "true" ]; then
+    echo -e "\t--no_prompt must be used with another command such as --enable or --disable"
+    ngx_help
+else
+    ngx_error "No Options Selected" 1
+    ngx_help
+fi
